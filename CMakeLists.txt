@@ -108,8 +108,14 @@ if(NOT OusterSDK_FOUND)
         # errors when building ouster_pcap against them.  Force-include
         # the header for every TU that belongs to the ouster_pcap target.
         if(TARGET ouster_pcap)
+            # NB: keep '-include cstdint' together as one shell fragment via the
+            # SHELL: prefix. As two separate list items (-include;cstdint) CMake's
+            # option handling can reorder/deduplicate them, splitting the pair so
+            # 'cstdint' is left as a dangling positional input -> AppleClang fails
+            # with "no such file or directory: 'cstdint'". SHELL: keeps them
+            # adjacent and un-deduplicated on every generator.
             target_compile_options(ouster_pcap PRIVATE
-                $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-include;cstdint>)
+                "$<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:SHELL:-include cstdint>")
         endif()
     else()
         message(FATAL_ERROR
